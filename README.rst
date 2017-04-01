@@ -36,6 +36,15 @@ Example:::
     })
 
 
+Why doesn't my template work?
+=============================
+
+LibreOffice has probably injected random formatting markup in the middle of
+your placeholders, preventing the tool from recognizing them.  Using "Format,
+Clear Direct Formatting" and then reformatting again (taking care to always
+select entire placeholders) usually helps.
+
+
 Contributions and bug reports
 =============================
 
