@@ -1,4 +1,9 @@
-## odt_templater - a simple Open Document Text templating tool
+===============
+ odt_templater
+===============
+---------------------------------------------
+ a simple Open Document Text templating tool
+---------------------------------------------
 
 This is a minimal module for creating ODT files based on ODT templates and
 dictionaries of values.
@@ -11,7 +16,7 @@ documentation than code here!
     
 Just be sure to test your templates...
     
-Example:
+Example:::
     
     from odt_template import render_odt_template
 
@@ -31,13 +36,15 @@ Example:
     })
 
 
-### Contributions and bug reports
+Contributions and bug reports
+=============================
 
-Please file pull requests or open issues on this project's Github repository,
-at <https://github.com/BjarniRunar/odt-templater/>.
+Please file pull requests or open issues on this project's Github repository:
+https://github.com/BjarniRunar/odt-templater/
 
 
-### Copyright and License (MIT)
+Copyright and License (MIT)
+===========================
 
 This code is (C) Copyright 2017, Bjarni Rúnar Einarsson.
 
