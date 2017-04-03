@@ -68,40 +68,53 @@ def render_odt_template(template_file, output_file, variables):
                           compression=zipfile.ZIP_DEFLATED)
 
     def template_replace(data, key, val):
-        marker = '@%s@' % key.upper()
-        if isinstance(val, (list, tuple, dict)):
-            # Lists/tuples/dicts trigger our list and table mode
+        def e(t):
+            return (unicode(t).replace('&', '&amp;')
+                              .replace('<', '&lt;')
+                              .replace('>', '&gt;')).encode('utf-8')
+        try:
+            mark = unicode('@%s@' % key).upper().encode('utf-8')
+            if isinstance(val, (list, tuple, dict)):
+                # Lists/tuples/dicts trigger our list and table mode
+                def lexpand(match):
+                    tpl = match.group(0)
 
-            def lexpand(match):
-                tpl = match.group(0)
+                    def vexpand(t, v):
+                        if isinstance(v, (dict,)):
+                            for dk, dv in v.iteritems():
+                                dk = unicode(dk).encode('utf-8').upper()
+                                t = t.replace('@%s@' % dk, e(dv) or ' ')
+                            return t
+                        return t.replace(mark, e(v) or ' ')
 
-                def vexpand(t, v):
-                    if isinstance(v, (dict,)):
-                        for dk, dv in v.iteritems():
-                            t = t.replace('@%s@' % dk.upper(),
-                                          unicode(dv).encode('utf-8'))
-                        return t
-                    return t.replace(marker, unicode(v).encode('utf-8'))
+                    return (''.join([vexpand(tpl, v) for v in val]) or ' ')
+                return re.sub((
+                    '<(text:list-item|table:table-row)>'
+                    '(<(?!table:table-row)[^>]*>)*'
+                    '[^>]*%s.*?</\\1>' % mark), lexpand, data)
+            else:
+                # Other values are simply stringified
+                return data.replace(mark, e(val) or ' ')
+        except:
+            sys.stderr.write('Failed to replace `%s` with `%s`\n' % (mark, val))
+            raise
 
-                return ''.join([vexpand(tpl, v) for v in val])
-            return re.sub('<(text:list-item|table:table-row)>'
-                          '(<(?!table:table-row)[^>]*>)*'
-                          '[^>]*%s.*?</\\1>' % marker, lexpand, data)
-        else:
-            # Other values are simply stringified
-            return data.replace(marker, unicode(val).encode('utf-8'))
-
-    for fn in tzf.namelist():
-        data = tzf.read(fn)
-        if fn.endswith('content.xml'):
-            for k, v in variables.iteritems():
-                data = template_replace(data, k, v)
-        elif fn in variables:
-            data = variables[fn]
-        ozf.writestr(fn, data)
-
-    ozf.close()
-    tzf.close()
+    try:
+        fn = '(unknown)'
+        for fn in tzf.namelist():
+            data = tzf.read(fn)
+            if fn.endswith('content.xml'):
+                for k, v in variables.iteritems():
+                    data = template_replace(data, k, v)
+            elif fn in variables:
+                data = variables[fn]
+            ozf.writestr(fn, data)
+    except:
+        sys.stderr.write('Failed to process `%s`\n' % fn)
+        raise
+    finally:
+        ozf.close()
+        tzf.close()
 
 
 if __name__ == '__main__':
